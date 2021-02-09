@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 labels:
   template: deployment-template
@@ -7,11 +7,15 @@ metadata:
     description: Application template for applications built using a Jenkins Pipeline
   name: deployment-template
 objects:
-- apiVersion: v1
+- apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
     labels:
-      app: ${APPLICATION_NAME}
+      app.kubernetes.io/name: ${APPLICATION_NAME}
+      app.kubernetes.io/instance: ${APPLICATION_NAME}
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: ${APPLICATION_NAME}
+      app.kubernetes.io/managed-by: applier
     name: ${APPLICATION_NAME}
     namespace: ${APPLICATION_NAME}${ENV}
   spec:
@@ -23,7 +27,11 @@ objects:
     template:
       metadata:
         labels:
-          app: ${APPLICATION_NAME}
+          app.kubernetes.io/name: ${APPLICATION_NAME}
+          app.kubernetes.io/instance: ${APPLICATION_NAME}
+          app.kubernetes.io/component: api
+          app.kubernetes.io/part-of: ${APPLICATION_NAME}
+          app.kubernetes.io/managed-by: applier
           deploymentConfig: ${APPLICATION_NAME}
         name: ${APPLICATION_NAME}
       spec:
@@ -54,21 +62,28 @@ objects:
           name: ${APPLICATION_NAME}:latest
       type: ImageChange
     - type: ConfigChange
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:
-      app: ${APPLICATION_NAME}
+      app.kubernetes.io/name: ${APPLICATION_NAME}
+      app.kubernetes.io/instance: ${APPLICATION_NAME}
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: ${APPLICATION_NAME}
+      app.kubernetes.io/managed-by: applier
     name: ${APPLICATION_NAME}
     namespace: ${APPLICATION_NAME}${ENV}
-- apiVersion: v1
-  id: ${APPLICATION_NAME}-http
+- apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
     annotations:
       description: Route for application's service.
     labels:
-      app: ${APPLICATION_NAME}
+      app.kubernetes.io/name: ${APPLICATION_NAME}
+      app.kubernetes.io/instance: ${APPLICATION_NAME}
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: ${APPLICATION_NAME}
+      app.kubernetes.io/managed-by: applier
     name: ${APPLICATION_NAME}
     namespace: ${APPLICATION_NAME}${ENV}
   spec:
@@ -81,7 +96,11 @@ objects:
     annotations:
       description: Service for application.
     labels:
-      app: ${APPLICATION_NAME}
+      app.kubernetes.io/name: ${APPLICATION_NAME}
+      app.kubernetes.io/instance: ${APPLICATION_NAME}
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: ${APPLICATION_NAME}
+      app.kubernetes.io/managed-by: applier
     name: ${APPLICATION_NAME}
     namespace: ${APPLICATION_NAME}${ENV}
   spec:
@@ -91,18 +110,23 @@ objects:
       protocol: TCP
       targetPort: 8080
     selector:
-      app: ${APPLICATION_NAME}
       deploymentConfig: ${APPLICATION_NAME}
-- apiVersion: v1
-  groupNames: null
+- apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
     creationTimestamp: null
     labels:
-      template: basic-nginx-template
+      app.kubernetes.io/name: ${APPLICATION_NAME}
+      app.kubernetes.io/instance: ${APPLICATION_NAME}
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: ${APPLICATION_NAME}
+      app.kubernetes.io/managed-by: applier
     name: jenkins_edit
     namespace: ${APPLICATION_NAME}${ENV}
+  groupNames: null
   roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
     name: edit
   subjects:
   - kind: ServiceAccount

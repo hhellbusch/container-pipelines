@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 labels:
   template: jenkins2-s2i
@@ -25,14 +25,14 @@ parameters:
   value: ''
 objects:
 # Jenkins2
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:
       app: jenkins2-s2i
       template: jenkins2-s2i
     name: jenkins2-s2i
-- apiVersion: v1
+- apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     labels:
@@ -48,7 +48,6 @@ objects:
         name: jenkins2-s2i:latest
     source:
       type: Git
-      contextDir: '2'
       git:
         uri: "${JENKINS_GIT_URL}"
         ref: "${JENKINS_GIT_BRANCH}"

@@ -4,7 +4,7 @@ sb_dev_namespace: basic-spring-boot-dev
 sb_stage_namespace: basic-spring-boot-stage
 sb_prod_namespace: basic-spring-boot-prod
 sb_application_repository_url: "https://github.com/redhat-cop/spring-rest.git"
-sb_application_repository_ref: 1.5.8.Final-redhat-1.1
+sb_application_repository_ref: master
 sb_application_readiness_response: "status.:.UP"
 sb_application_readiness_path: "/health"
 sb_sa_name: "jenkins"
@@ -27,6 +27,9 @@ openshift_cluster_content:
     params_from_vars:
       APPLICATION_NAME: "{{ sb_application_name }}"
       NAMESPACE: "{{ sb_build_namespace }}"
+      NAMESPACE_DEV: "{{ sb_dev_namespace }}"
+      NAMESPACE_STAGE: "{{ sb_stage_namespace }}"
+      NAMESPACE_PROD: "{{ sb_prod_namespace }}"
       SOURCE_REPOSITORY_URL: "{{ sb_source_repository_url }}"
       SOURCE_REPOSITORY_REF: "{{ sb_source_repository_ref }}"
       APPLICATION_SOURCE_REPO: "{{ sb_application_repository_url }}"
@@ -46,7 +49,7 @@ openshift_cluster_content:
       READINESS_PATH: "{{ sb_application_readiness_path }}"
     tags:
       - deployment
-  - name: "deply stage environment"
+  - name: "deploy stage environment"
     template: "{{ inventory_dir }}/../.openshift/templates/deployment.yml"
     params_from_vars:
       APPLICATION_NAME: "{{ sb_application_name }}"
@@ -68,3 +71,8 @@ openshift_cluster_content:
       READINESS_PATH: "{{ sb_application_readiness_path }}"
     tags:
       - deployment
+  - name: "deploy jenkins to build environment"
+    template: "openshift//jenkins-ephemeral"
+    namespace: "{{ sb_build_namespace }}"
+    tags:
+      - build

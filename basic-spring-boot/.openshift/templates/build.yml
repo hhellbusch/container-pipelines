@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 labels:
   template: generic-java-jenkins-pipeline
@@ -10,18 +10,26 @@ metadata:
     version: 1.2.0
   name: generic-java-jenkins-pipeline
 objects:
-- apiVersion: v1
+- apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     labels:
-      application: ${APPLICATION_NAME}
+      app.kubernetes.io/name: ${APPLICATION_NAME}
+      app.kubernetes.io/instance: ${APPLICATION_NAME}-build
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: ${APPLICATION_NAME}
+      app.kubernetes.io/managed-by: applier
     name: ${APPLICATION_NAME}
     namespace: ${NAMESPACE}
-- kind: "BuildConfig"
-  apiVersion: "v1"
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
   metadata:
     labels:
-      application: ${APPLICATION_NAME}
+      app.kubernetes.io/name: ${APPLICATION_NAME}
+      app.kubernetes.io/instance: ${APPLICATION_NAME}-build
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: ${APPLICATION_NAME}
+      app.kubernetes.io/managed-by: applier
     name: "${APPLICATION_NAME}-pipeline"
     namespace: "${NAMESPACE}"
   spec:
@@ -41,15 +49,29 @@ objects:
       jenkinsPipelineStrategy:
         jenkinsfilePath: ${PIPELINE_SCRIPT}
         env:
+        - name: "APP_NAME"
+          value: "${APPLICATION_NAME}"
         - name: "APPLICATION_SOURCE_REPO"
           value: "${APPLICATION_SOURCE_REPO}"
         - name: "APPLICATION_SOURCE_REF"
           value: "${APPLICATION_SOURCE_REF}"
-- apiVersion: v1
+        - name: "NAMESPACE_BUILD"
+          value: "${NAMESPACE}"
+        - name: "NAMESPACE_DEV"
+          value: "${NAMESPACE_DEV}"
+        - name: "NAMESPACE_STAGE"
+          value: "${NAMESPACE_STAGE}"
+        - name: "NAMESPACE_PROD"
+          value: "${NAMESPACE_PROD}"
+- apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     labels:
-      application: ${APPLICATION_NAME}
+      app.kubernetes.io/name: ${APPLICATION_NAME}
+      app.kubernetes.io/instance: ${APPLICATION_NAME}-build
+      app.kubernetes.io/component: api
+      app.kubernetes.io/part-of: ${APPLICATION_NAME}
+      app.kubernetes.io/managed-by: applier
     name: ${APPLICATION_NAME}
     namespace: "${NAMESPACE}"
   spec:
@@ -72,7 +94,7 @@ parameters:
   name: APPLICATION_NAME
   required: true
   value: basic-spring
-- description: The namespace to deploy into
+- description: The namespace that will contain the build resources defined in this template
   name: NAMESPACE
   required: true
 - description: Git source URI for application
@@ -95,6 +117,15 @@ parameters:
 - description: Path within Git project pointing to the pipeline run script
   name: PIPELINE_SCRIPT
   value: Jenkinsfile
+- description: The namespace containing dev resources
+  name: NAMESPACE_DEV
+  required: true
+- description: The namespace containing stage resources
+  name: NAMESPACE_STAGE
+  required: true
+- description: The namespace containing prod resources
+  name: NAMESPACE_PROD
+  required: true
 - description: GitHub trigger secret
   from: '[a-zA-Z0-9]{8}'
   generate: expression
