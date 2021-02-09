@@ -13,7 +13,8 @@ def version = ''
 
 openshift.withCluster() {
   env.TARGET = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/target" : "target"
-  env.APP_NAME = "${JOB_NAME}".replaceAll(/-build.*/, '')
+  // env.APP_NAME = "${JOB_NAME}".replaceAll(/-build.*/, '')
+  env.APP_NAME = "spring-boot-web"
   env.BUILD = openshift.project()
   env.DEV = "${APP_NAME}-dev"
   env.STAGE = "${APP_NAME}-stage"
